@@ -1,0 +1,857 @@
+{
+	"info": {
+		"_postman_id": "685320d6-9758-467f-a091-d63e3d4454da",
+		"name": "FI_Stage",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "CreateSeller",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"Verify Email Address field in the Response\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.email).to.eql(pm.collectionVariables.get(\"email\"));",
+							"});",
+							"",
+							"pm.test(\"Get the Seller UUID and set as environment variable\", function () {",
+							"    var jsonData = JSON.parse(responseBody);",
+							"    pm.collectionVariables.set(\"sellerUuid\", jsonData.sellerUuid);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.globals.clear();",
+							"var sellerIdentifier = Math.floor(Math.random()*99999999+100000000);",
+							"var familyName = Math.random().toString(36).substring(2);",
+							"var givenName = Math.random().toString(36).substring(2);",
+							"var phoneNumber = Math.floor(Math.random() * 999999999 + 100000000);",
+							"var email = familyName + givenName + \"@ext.deposit-solutions.com\";",
+							"",
+							"pm.collectionVariables.set(\"sellerIdentifier\", sellerIdentifier);",
+							"pm.collectionVariables.set(\"familyName\", familyName);",
+							"pm.collectionVariables.set(\"givenName\", givenName);",
+							"pm.collectionVariables.set(\"phoneNumber\", phoneNumber);",
+							"pm.collectionVariables.set(\"email\", email);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"sellerIdentifier\": \"{{sellerIdentifier}}\",\n    \"familyName\": \"{{familyName}}\",\n    \"givenName\": \"{{givenName}}\",\n    \"phoneNumber\": \"{{phoneNumber}}\",\n    \"email\": \"{{email}}\",\n    \"roles\": [\n        \"seller\",\n        \"supervisor\"\n    ],\n    \"active\": true\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/sellers",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"sellers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetNewlyCreatedSeller",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/sellers/{{sellerUuid}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"sellers",
+						"{{sellerUuid}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UpdateGeneralData",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Validate Status Code of Update General data of seller\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Verify Changed Phone number in the Response\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.phoneNumber).to.contain(pm.globals.get(\"phoneNumber\"));",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"",
+							"var phoneNumber = Math.floor(Math.random() * 999999999 + 100000000);",
+							"pm.collectionVariables.unset(\"phoneNumber\");",
+							"pm.globals.set(\"phoneNumber\", phoneNumber);",
+							"console.log(phoneNumber);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n            \"phoneNumber\": \"{{phoneNumber}}\",\n            \"email\": \"{{email}}\",\n            \"familyName\": \"{{familyName}}\",\n            \"givenName\": \"{{givenName}}\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/sellers/{{sellerUuid}}/general",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"sellers",
+						"{{sellerUuid}}",
+						"general"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UpdateSellerRoles",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Role is updated\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.roles).to.not.contain(\"supervisor\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\n        \"seller\"\n]\n"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/sellers/{{sellerUuid}}/roles",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"sellers",
+						"{{sellerUuid}}",
+						"roles"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Contract",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var contractIdentifier = Math.floor(Math.random() * 999999999 + 100000000);",
+							"var familyName = Math.random().toString(36).substring(2);",
+							"var givenName = Math.random().toString(36).substring(2);",
+							"var nameOfBirth = Math.random().toString(36).substring(2);",
+							"",
+							"",
+							"pm.collectionVariables.set(\"contractIdentifier\", contractIdentifier);",
+							"pm.collectionVariables.set(\"familyName\", familyName);",
+							"pm.collectionVariables.set(\"givenName\", givenName);",
+							"pm.collectionVariables.set(\"nameOfBirth\", nameOfBirth);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Verify Family Name in the Response\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.personalData.familyName).to.contain(pm.collectionVariables.get(\"familyName\"));",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"contractId\": {{contractIdentifier}},\n    \"state\": \"DRAFT\",\n    \"personalData\": {\n        \"gender\": \"MALE\",\n        \"title\": \"NONE\",\n        \"familyName\": \"{{familyName}}\",\n        \"givenName\": \"{{givenName}}\",\n        \"nameOfBirth\": \"{{nameOfBirth}}\",\n        \"familySituation\": \"SINGLE\",\n        \"dateOfBirth\": \"1991-04-04\",\n        \"placeOfBirth\": \"hyderabad\",\n        \"countryOfBirth\": \"DE\",\n        \"nationality\": \"DE\",\n        \"phoneNumber\": \"+4915201661069\"\n    },\n    \"registeredAddress\": {\n        \"addressStreet\": \"Seestr.\",\n        \"addressHouseNumber\": \"118\",\n        \"addressPostcode\": \"13353\",\n        \"addressCity\": \"Berlin\",\n        \"addressCountry\": \"DE\"\n    },\n    \"professionalData\": {\n        \"occupation\": \"OTHER_PRIVATE_PERSON\"\n    },\n    \"taxData\": {\n        \"countryOfTaxation\": \"DE\",\n        \"taxIdentificationNumber\": \"24653097851\"\n    },\n    \"legitimationData\": {\n        \"documentType\": \"IDENTITY_CARD\",\n        \"documentNumber\": \"C01X0006H1\",\n        \"documentExpiryDate\": \"2023-04-04\",\n        \"documentIssueDate\": \"2013-04-04\",\n        \"documentIssuingAuthority\": \"Berlin\",\n        \"legitimationDate\": \"2021-04-04\"\n    },\n    \"referenceBankAccount\": {\n        \"bankAccountIban\": \"DE12201900039039878215\",\n        \"bankAccountBic\": \"TESTDETT421\",\n        \"bankAccountHolder\": \"Franziska Krassa\"\n    },\n    \"seller\": null,\n    \"pendingUpdates\": null,\n    \"pep\": false,\n    \"fatca\": false\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/contracts",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"contracts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Newly Created Contract",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Verify Email Address field in the Response\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.personalData.familyName).to.eql(pm.collectionVariables.get(\"familyName\"));",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/contracts/{{contractIdentifier}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"contracts",
+						"{{contractIdentifier}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Account Opening File",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/contracts/{{contractIdentifier}}/accountOpeningDocument",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"contracts",
+						"{{contractIdentifier}}",
+						"accountOpeningDocument"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Signature to Contract",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"signatureType\": \"SIGNED_IN_PERSON_AT_LOCATION\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/contracts/{{contractIdentifier}}/signature",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"contracts",
+						"{{contractIdentifier}}",
+						"signature"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Product Offers",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Get the Product Offer ID and set as environment variable\", function () {",
+							"    var jsonData = JSON.parse(responseBody);",
+							"    pm.collectionVariables.set(\"productOfferId\", jsonData.data[0].productOfferId);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/product-offers?pageNumber=0&pageSize=100&contractId={{contractIdentifier}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"product-offers"
+					],
+					"query": [
+						{
+							"key": "pageNumber",
+							"value": "0"
+						},
+						{
+							"key": "pageSize",
+							"value": "100"
+						},
+						{
+							"key": "contractId",
+							"value": "{{contractIdentifier}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Product Offer",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/product-offers/{{productOfferId}}?contractId={{contractIdentifier}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"product-offers",
+						"{{productOfferId}}"
+					],
+					"query": [
+						{
+							"key": "contractId",
+							"value": "{{contractIdentifier}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Product Offer Investment Requirements",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/product-offers/{{productOfferId}}/productAndDepositorInformationDocument?contractId={{contractIdentifier}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"product-offers",
+						"{{productOfferId}}",
+						"productAndDepositorInformationDocument"
+					],
+					"query": [
+						{
+							"key": "contractId",
+							"value": "{{contractIdentifier}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Depositor Information",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/product-offers/{{productOfferId}}/productAndDepositorInformationDocument?contractId={{contractIdentifier}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"product-offers",
+						"{{productOfferId}}",
+						"productAndDepositorInformationDocument"
+					],
+					"query": [
+						{
+							"key": "contractId",
+							"value": "{{contractIdentifier}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Investment",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Get the Investment UUID and set as environment variable\", function () {",
+							"    var jsonData = JSON.parse(responseBody);",
+							"    pm.collectionVariables.set(\"investmentUuid\", jsonData.investmentUuid);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"currency\": \"EUR\",\n    \"amount\": \"10000.00\",\n    \"productOfferId\": \"{{productOfferId}}\",\n    \"contractIdentifier\": \"{{contractIdentifier}}\",\n    \"autoProlongation\": false\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/investments",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"investments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Sign Investment",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"signatureType\": \"SIGNED_IN_PERSON_AT_LOCATION\",\n    \"masterCustomerAgreementSigned\": false\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/investments/{{investmentUuid}}/signature",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"investments",
+						"{{investmentUuid}}",
+						"signature"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Investment Document",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/investments/{{investmentUuid}}/document?contractId={{contractIdentifier}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"investments",
+						"{{investmentUuid}}",
+						"document"
+					],
+					"query": [
+						{
+							"key": "contractId",
+							"value": "{{contractIdentifier}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Investments",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/investments?pageNumber=0&pageSize=100",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"investments"
+					],
+					"query": [
+						{
+							"key": "pageNumber",
+							"value": "0"
+						},
+						{
+							"key": "pageSize",
+							"value": "100"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Sign Investment Cancellation",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 204\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/investments/{{investmentUuid}}/cancellation/signature",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"investments",
+						"{{investmentUuid}}",
+						"cancellation",
+						"signature"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "apikey",
+		"apikey": [
+			{
+				"key": "value",
+				"value": "9aab4e8e-5bee-4967-8b64-906ef6fd0ff4",
+				"type": "string"
+			},
+			{
+				"key": "key",
+				"value": "X-API-Key",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "strawberry.stg.salesportal-eu.deposit/api"
+		},
+		{
+			"key": "email",
+			"value": ""
+		},
+		{
+			"key": "familyName",
+			"value": ""
+		},
+		{
+			"key": "givenName",
+			"value": ""
+		},
+		{
+			"key": "sellerIdentifier",
+			"value": ""
+		},
+		{
+			"key": "sellerUuid",
+			"value": ""
+		},
+		{
+			"key": "contractIdentifier",
+			"value": ""
+		},
+		{
+			"key": "nameOfBirth",
+			"value": ""
+		},
+		{
+			"key": "productOfferId",
+			"value": ""
+		},
+		{
+			"key": "investmentUuid",
+			"value": ""
+		}
+	]
+}

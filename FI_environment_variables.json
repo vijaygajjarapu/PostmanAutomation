@@ -1,0 +1,14 @@
+{
+	"id": "a8d72908-7cca-4da1-8a1a-4cb65e4d8e82",
+	"name": "FI_Local",
+	"values": [
+		{
+			"key": "X-API-Key",
+			"value": "",
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2021-09-09T07:23:03.285Z",
+	"_postman_exported_using": "Postman/7.36.5"
+}
